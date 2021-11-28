@@ -18,8 +18,14 @@ pub enum Error {
     #[error("memo too long")]
     MemoTooLong,
 
-    #[error("insufficient payment")]
-    InsufficientPayment,
+    #[error("payment amount does not match invoice amount")]
+    PaymentDoesNotMatchInvoiceAmount,
+
+    #[error("invoice signature is invalid")]
+    InvoiceSignatureInvalid,
+
+    #[error("amount commitment is invalid")]
+    AmountCommitmentInvalid,
 
     /// dbc error
     #[error("dbc error: {0}")]

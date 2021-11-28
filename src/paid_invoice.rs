@@ -1,8 +1,6 @@
 use crate::error::{Error, Result};
 use crate::invoice::Invoice;
 use crate::payment::Payment;
-use blsttc::SecretKey;
-use sn_dbc::Amount;
 
 // buyer pays it.
 pub struct PaidInvoice {
@@ -11,24 +9,24 @@ pub struct PaidInvoice {
 }
 
 impl PaidInvoice {
-    pub fn verify_by_secret_key(&self, secret_key: &SecretKey) -> Result<()> {
-        let payto_sum = self
-            .payment
-            .dbc_packets
-            .iter()
-            .filter(|d| d.dbc().owner() == self.invoice.payto)
-            .map(
-                |d| match d.dbc().content.amount_secret_by_secret_key(secret_key) {
-                    Ok(s) => Ok(s.amount),
-                    Err(e) => Err(Error::from(e)),
-                },
-            )
-            .sum::<Result<Amount>>()?;
+    pub fn verify(&self) -> Result<()> {
+        self.invoice.verify()?;
 
-        if payto_sum >= self.invoice.amount {
+        let payto_public_key = self.invoice.content.payto_public_key;
+
+        let payment_sum = self.payment.commitment_sum_by_owner(&payto_public_key)?;
+
+        let invoice_amount_commitment = self
+            .invoice
+            .content
+            .amount_commitment
+            .decompress()
+            .ok_or(Error::AmountCommitmentInvalid)?;
+
+        if payment_sum == invoice_amount_commitment {
             Ok(())
         } else {
-            Err(Error::InsufficientPayment)
+            Err(Error::PaymentDoesNotMatchInvoiceAmount)
         }
     }
 }

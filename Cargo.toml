@@ -6,7 +6,11 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-sn_dbc = "2.9.1"
+# sn_dbc = "2.9.1"
+sn_dbc = {path="/home/danda/dev/maidsafe/sn_dbc"}
 serde = "1.0.130"
 thiserror = "1.0.30"
 blsttc = "3.4.0"
+tiny-keccak = "2.0.2"
+bulletproofs = "4.0.0"
+curve25519-dalek-ng = "4.1.1"
