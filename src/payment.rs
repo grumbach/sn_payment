@@ -1,22 +1,19 @@
 use crate::{Error, Result};
-use blsttc::PublicKey;
 use serde::{Deserialize, Serialize};
-use sn_dbc::{DbcPacket, Hash};
+use sn_dbc::{Commitment, Dbc, Hash, PublicKey};
 use tiny_keccak::{Hasher, Sha3};
 
-use curve25519_dalek_ng::ristretto::RistrettoPoint;
-
-/// a payment is a list of DbcPacket
+/// a payment is a list of Dbc
 #[derive(Clone, Deserialize, Serialize)]
 pub struct Payment {
-    pub dbc_packets: Vec<DbcPacket>,
+    pub dbcs: Vec<Dbc>,
 }
 
 impl Payment {
     /// payment hash
     pub fn hash(&self) -> sn_dbc::Hash {
         let mut sha3 = Sha3::v256();
-        for dp in self.dbc_packets.iter() {
+        for dp in self.dbcs.iter() {
             sha3.update(dp.hash().as_ref());
         }
         let mut hash = [0u8; 32];
@@ -24,23 +21,13 @@ impl Payment {
         Hash::from(hash)
     }
 
-    /// retrieve sum of commitments for DbcPackets derived from payto_public_key
-    pub fn commitment_sum_by_owner(&self, payto_public_key: &PublicKey) -> Result<RistrettoPoint> {
-        self.dbc_packets
+    /// retrieve sum of commitments for Dbcs derived from payto_public_key
+    pub fn commitment_sum_by_owner(&self, payto_public_key: &PublicKey) -> Result<Commitment> {
+        self.dbcs
             .iter()
-            .filter(|d| {
-                d.owner_keyset().public_key() == payto_public_key
-                    && d.dbc().owner()
-                        == payto_public_key.derive_child(d.owner_keyset().derivation_index())
-            })
-            .map(|d| {
-                d.dbc()
-                    .content
-                    .commitment
-                    .decompress()
-                    .ok_or(Error::AmountCommitmentInvalid)
-            })
-            .sum::<Result<RistrettoPoint, _>>()
+            .filter(|d| &d.content.owner_base.public_key() == payto_public_key)
+            .map(|d| d.commitment().map_err(|_| Error::AmountCommitmentInvalid))
+            .sum::<Result<Commitment, _>>()
     }
 }
 

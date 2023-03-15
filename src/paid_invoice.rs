@@ -16,12 +16,7 @@ impl PaidInvoice {
 
         let payment_sum = self.payment.commitment_sum_by_owner(&payto_public_key)?;
 
-        let invoice_amount_commitment = self
-            .invoice
-            .content
-            .amount_commitment
-            .decompress()
-            .ok_or(Error::AmountCommitmentInvalid)?;
+        let invoice_amount_commitment = self.invoice.content.amount_commitment;
 
         if payment_sum == invoice_amount_commitment {
             Ok(())

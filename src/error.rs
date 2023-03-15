@@ -30,14 +30,4 @@ pub enum Error {
     /// dbc error
     #[error("dbc error: {0}")]
     Dbc(#[from] sn_dbc::Error),
-    // /// serialisation error.
-    // #[error("serialisation error: {0}")]
-    // Serialisation(#[from] serde_json::Error),
-
-    // /// serialisation error.
-    // #[error("serialisation error: {0}")]
-    // Deserialisation(#[from] serde_json::de::Error),
-
-    // #[error("Infallible.  Can never fail")]
-    // Infallible(#[from] std::convert::Infallible),
 }

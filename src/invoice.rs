@@ -17,7 +17,7 @@ impl Invoice {
         let valid = self
             .content
             .payto_public_key
-            .verify(&self.payto_signature, &self.content.to_bytes());
+            .verify(&self.payto_signature, self.content.to_bytes());
 
         match valid {
             true => Ok(()),
